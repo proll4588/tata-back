@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model requests {
+  id                Int             @id @default(autoincrement())
+  user_id           Int?
+  status_id         Int             @default(1)
+  phone_number      String          @db.VarChar(100)
+  user_name         String          @db.VarChar(255)
+  email             String          @db.VarChar(255)
+  description       String?         @db.VarChar(1000)
+  photo_type_id     Int
+  photo_category_id Int
+  startDate         DateTime        @db.DateTime(0)
+  endDate           DateTime        @db.DateTime(0)
+  photo_url_id      Int?
+  price             Decimal?        @db.Decimal(2, 0)
+  photo_categorys   photo_categorys @relation(fields: [photo_category_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "requests_photo_categorys_id_fk")
+  photo_types       photo_types     @relation(fields: [photo_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "requests_photo_types_id_fk")
+  photo_urls        photo_urls?     @relation(fields: [photo_url_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "requests_photo_urls_id_fk")
+  statuses          statuses        @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "requests_statuses_id_fk")
+  users             users?          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "requests_users_id_fk")
+
+  @@index([status_id], map: "requests_statuses_id_fk")
+  @@index([user_id], map: "requests_users_id_fk")
+  @@index([photo_category_id], map: "requests_photo_categorys_id_fk")
+  @@index([photo_type_id], map: "requests_photo_types_id_fk")
+  @@index([photo_url_id], map: "requests_photo_urls_id_fk")
+}
+
+model statuses {
+  id          Int        @id @default(autoincrement())
+  title       String     @unique(map: "statuses_pk_2") @db.VarChar(100)
+  description String?    @db.VarChar(255)
+  requests    requests[]
+}
+
+model users {
+  id       Int        @id @default(autoincrement())
+  email    String     @unique(map: "users_pk_2") @db.VarChar(100)
+  password String     @db.VarChar(255)
+  requests requests[]
+}
+
+model photo_categorys {
+  id       Int        @id @default(autoincrement())
+  title    String     @db.VarChar(100)
+  requests requests[]
+}
+
+model photo_types {
+  id       Int        @id @default(autoincrement())
+  title    String     @db.VarChar(100)
+  requests requests[]
+}
+
+model photo_urls {
+  id       Int        @id @default(autoincrement())
+  url      String     @db.VarChar(1000)
+  endDate  DateTime?  @db.Date
+  requests requests[]
+}
