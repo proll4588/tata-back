@@ -45,11 +45,36 @@ router.get('/getAllRequests', async (_, res) => {
 interface GetUserRequestsEndpoint {
   token: string;
 }
+
+type req = {
+  statuses: {
+    id: number;
+    title: string;
+    description: string | null;
+  };
+  photo_categorys: {
+    id: number;
+    title: string;
+  };
+  photo_types: {
+    id: number;
+    title: string;
+  };
+  photo_urls: {
+    id: number;
+    url: string;
+    endDate: Date | null;
+  } | null;
+  users: {
+    id: number;
+    email: string;
+  } | null;
+} & Omit<Prisma.$requestsPayload['scalars'], 'status_id'>;
 interface GetUserRequestsResponse {
-  requests: Prisma.$requestsPayload['scalars'][];
+  requests: req[];
 }
 /** @testes */
-router.get(
+router.post(
   '/getUserRequests',
   async (req: MyRequest<GetUserRequestsEndpoint>, res) => {
     let userId;
@@ -63,6 +88,18 @@ router.get(
     const data = await prisma.requests.findMany({
       where: {
         user_id: Number(userId),
+      },
+      include: {
+        statuses: true,
+        photo_categorys: true,
+        photo_types: true,
+        photo_urls: true,
+        users: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
       },
     });
 
@@ -132,6 +169,22 @@ router.post(
 
     const newData = await prisma.requests.create({
       data: { ...req.body.data, user_id: userId },
+    });
+
+    res.status(200).json(newData as UpdateRequestResponse);
+  }
+);
+
+router.post(
+  '/cancelRequest',
+  async (req: MyRequest<{ requestId: number }>, res) => {
+    const newData = await prisma.requests.update({
+      where: {
+        id: req.body.requestId,
+      },
+      data: {
+        status_id: 4,
+      },
     });
 
     res.status(200).json(newData as UpdateRequestResponse);
