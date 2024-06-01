@@ -30,8 +30,22 @@ interface GetAllRequestsResponse {
   requests: Prisma.$requestsPayload['scalars'][];
 }
 /** @testes */
-router.get('/getAllRequests', async (_, res) => {
-  const data = await prisma.requests.findMany();
+router.post('/getAllRequests', async (_, res) => {
+  const data = await prisma.requests.findMany({
+    include: {
+      statuses: true,
+      photo_categorys: true,
+      photo_types: true,
+      photo_urls: true,
+      users: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
+    },
+  });
+
   if (!data) {
     res.status(400).json({ error: 'Что-то пошло не так' } as ResponseError);
     return;
