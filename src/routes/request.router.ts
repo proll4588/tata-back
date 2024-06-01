@@ -151,7 +151,7 @@ interface UpdateRequestEndpoint {
 }
 /** @testes */
 type UpdateRequestResponse = Partial<Prisma.$requestsPayload['scalars']>;
-router.patch(
+router.post(
   '/updateRequest',
   async (req: MyRequest<UpdateRequestEndpoint>, res) => {
     const newData = await prisma.requests.update({
@@ -198,6 +198,62 @@ router.post(
       },
       data: {
         status_id: 4,
+      },
+    });
+
+    res.status(200).json(newData as UpdateRequestResponse);
+  }
+);
+
+//
+
+router.post(
+  '/setPrice',
+  async (req: MyRequest<{ requestId: number; price: number }>, res) => {
+    const newData = await prisma.requests.update({
+      where: {
+        id: req.body.requestId,
+      },
+      data: {
+        price: Number(req.body.price.toFixed(2)),
+      },
+    });
+
+    res.status(200).json(newData as UpdateRequestResponse);
+  }
+);
+
+router.post(
+  '/addUrl',
+  async (req: MyRequest<{ requestId: number; url: string }>, res) => {
+    const newUrl = await prisma.photo_urls.create({
+      data: {
+        url: req.body.url,
+      },
+    });
+
+    const newData = await prisma.requests.update({
+      where: {
+        id: req.body.requestId,
+      },
+      data: {
+        photo_url_id: newUrl.id,
+      },
+    });
+
+    res.status(200).json(newData as UpdateRequestResponse);
+  }
+);
+
+router.post(
+  '/setStatus',
+  async (req: MyRequest<{ requestId: number; statusId: number }>, res) => {
+    const newData = await prisma.requests.update({
+      where: {
+        id: req.body.requestId,
+      },
+      data: {
+        status_id: req.body.statusId,
       },
     });
 
